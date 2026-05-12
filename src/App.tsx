@@ -4,6 +4,8 @@ import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import FileEditor from './pages/FileEditor';
 import WizardPage from './pages/WizardPage';
+import QueryPage from './pages/QueryPage';
+import DocumentsPage from './pages/DocumentsPage';
 import { ToastProvider } from './context/ToastContext';
 import { WizardProvider } from './context/WizardContext';
 
@@ -52,6 +54,22 @@ const App: React.FC = () => (
             <WizardProvider>
               <WizardPage />
             </WizardProvider>
+          }
+        />
+        <Route
+          path="/query"
+          element={
+            <AuthGuard>
+              <QueryPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <AuthGuard>
+              <DocumentsPage />
+            </AuthGuard>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
