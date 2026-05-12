@@ -7,15 +7,49 @@ import type { DocumentPreview, ContextResponse } from "../types";
 const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt"];
 const MAX_MB = 10;
 
+function KbStatusBadge({
+  hasKb,
+  isStale,
+  updatedAt,
+}: {
+  hasKb: boolean;
+  isStale: boolean;
+  updatedAt: string | null;
+}) {
+  if (!hasKb) {
+    return (
+      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
+        Not built
+      </span>
+    );
+  }
+  if (isStale) {
+    return (
+      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+        Outdated
+      </span>
+    );
+  }
+  const ts = updatedAt ? new Date(updatedAt).toLocaleTimeString() : "";
+  return (
+    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+      Up to date {ts && `· ${ts}`}
+    </span>
+  );
+}
+
 export default function UploadPane() {
   const {
     documents,
+    kbStatus,
     uploading,
     deleting,
+    buildingKb,
     error,
     upload,
     loadDocuments,
     removeDocuments,
+    updateKnowledgeBase,
     getPreview,
     getContext,
     clearError,
@@ -47,14 +81,12 @@ export default function UploadPane() {
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-
     const oversized = files.find((f) => f.size > MAX_MB * 1024 * 1024);
     if (oversized) {
       alert(`"${oversized.name}" exceeds ${MAX_MB} MB limit.`);
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
-
     await upload(files);
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -75,10 +107,9 @@ export default function UploadPane() {
     }
   }
 
-  async function handleUpdateKnowledgeBase() {
+  async function handleRemoveSelected() {
     if (selected.size === 0) return;
-    const names = [...selected];
-    await removeDocuments(names);
+    await removeDocuments([...selected]);
     setSelected(new Set());
   }
 
@@ -110,6 +141,7 @@ export default function UploadPane() {
     <div className="flex flex-col gap-3 p-4 bg-white rounded-xl shadow h-full">
       <h2 className="text-lg font-semibold text-gray-800">Upload Documents</h2>
 
+      {/* Upload area */}
       <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-blue-400 transition-colors">
         <span className="text-sm text-gray-500 mb-1">Click to select files</span>
         <span className="text-xs text-gray-400">
@@ -150,17 +182,42 @@ export default function UploadPane() {
         </div>
       )}
 
+      {/* Knowledge base status + Update button */}
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 bg-gray-50">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-medium text-gray-600">Knowledge Base</span>
+          {kbStatus && (
+            <KbStatusBadge
+              hasKb={kbStatus.has_kb}
+              isStale={kbStatus.is_stale}
+              updatedAt={kbStatus.updated_at}
+            />
+          )}
+        </div>
+        <button
+          onClick={() => void updateKnowledgeBase()}
+          disabled={buildingKb || documents.length === 0}
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+        >
+          {buildingKb && (
+            <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+          )}
+          {buildingKb ? "Building…" : "Update Knowledge Base"}
+        </button>
+      </div>
+
+      {/* Document list */}
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-600">
-            Uploaded documents ({documents.length})
+            Documents ({documents.length})
           </h3>
           {documents.length > 0 && (
             <button
-              onClick={handleGenerateContext}
+              onClick={() => void handleGenerateContext()}
               className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-1 rounded border border-purple-200 hover:border-purple-400 transition-colors"
             >
-              Generate Current Context
+              View Current Context
             </button>
           )}
         </div>
@@ -219,11 +276,11 @@ export default function UploadPane() {
               ))}
             </ul>
 
-            {/* Update Knowledge Base button */}
+            {/* Remove selected */}
             {selected.size > 0 && (
               <div className="mt-3 flex items-center gap-2">
                 <button
-                  onClick={() => void handleUpdateKnowledgeBase()}
+                  onClick={() => void handleRemoveSelected()}
                   disabled={deleting}
                   className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
                 >
@@ -232,7 +289,7 @@ export default function UploadPane() {
                   )}
                   {deleting
                     ? "Removing…"
-                    : `Update Knowledge Base (remove ${selected.size} file${selected.size !== 1 ? "s" : ""})`}
+                    : `Remove ${selected.size} selected file${selected.size !== 1 ? "s" : ""}`}
                 </button>
                 <button
                   onClick={() => setSelected(new Set())}

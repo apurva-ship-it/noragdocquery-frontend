@@ -25,3 +25,12 @@ export interface ContextResponse {
   total_characters: number;
   document_count: number;
 }
+
+export interface KnowledgeBaseStatus {
+  has_kb: boolean;
+  is_stale: boolean;
+  updated_at: string | null;
+  total_characters: number;
+  document_count: number;
+  document_names: string[];
+}

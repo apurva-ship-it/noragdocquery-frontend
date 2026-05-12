@@ -5,19 +5,24 @@ import {
   deleteDocument,
   fetchDocumentPreview,
   fetchContext,
+  fetchKbStatus,
+  buildKnowledgeBase,
 } from "../api/documents";
-import type { DocumentSummary, DocumentPreview, ContextResponse } from "../types";
+import type { DocumentSummary, DocumentPreview, ContextResponse, KnowledgeBaseStatus } from "../types";
 
 export function useDocuments() {
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
+  const [kbStatus, setKbStatus] = useState<KnowledgeBaseStatus | null>(null);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [buildingKb, setBuildingKb] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadDocuments = useCallback(async () => {
     try {
-      const docs = await fetchDocuments();
+      const [docs, status] = await Promise.all([fetchDocuments(), fetchKbStatus()]);
       setDocuments(docs);
+      setKbStatus(status);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load documents");
     }
@@ -55,6 +60,19 @@ export function useDocuments() {
     [loadDocuments]
   );
 
+  const updateKnowledgeBase = useCallback(async () => {
+    setBuildingKb(true);
+    setError(null);
+    try {
+      const status = await buildKnowledgeBase();
+      setKbStatus(status);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to build knowledge base");
+    } finally {
+      setBuildingKb(false);
+    }
+  }, []);
+
   const getPreview = useCallback(async (name: string): Promise<DocumentPreview | null> => {
     try {
       return await fetchDocumentPreview(name);
@@ -75,12 +93,15 @@ export function useDocuments() {
 
   return {
     documents,
+    kbStatus,
     uploading,
     deleting,
+    buildingKb,
     error,
     upload,
     loadDocuments,
     removeDocuments,
+    updateKnowledgeBase,
     getPreview,
     getContext,
     clearError: () => setError(null),

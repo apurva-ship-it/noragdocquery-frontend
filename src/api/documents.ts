@@ -1,4 +1,4 @@
-import type { DocumentSummary, UploadResponse, DocumentPreview, ContextResponse } from "../types";
+import type { DocumentSummary, UploadResponse, DocumentPreview, ContextResponse, KnowledgeBaseStatus } from "../types";
 
 export async function fetchDocuments(): Promise<DocumentSummary[]> {
   const res = await fetch("/api/documents");
@@ -38,4 +38,19 @@ export async function fetchContext(): Promise<ContextResponse> {
   const res = await fetch("/api/context");
   if (!res.ok) throw new Error(`Failed to fetch context: ${res.status}`);
   return res.json() as Promise<ContextResponse>;
+}
+
+export async function fetchKbStatus(): Promise<KnowledgeBaseStatus> {
+  const res = await fetch("/api/knowledge-base/status");
+  if (!res.ok) throw new Error(`Failed to fetch KB status: ${res.status}`);
+  return res.json() as Promise<KnowledgeBaseStatus>;
+}
+
+export async function buildKnowledgeBase(): Promise<KnowledgeBaseStatus> {
+  const res = await fetch("/api/knowledge-base", { method: "POST" });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { detail?: string }).detail ?? `Build failed: ${res.status}`);
+  }
+  return res.json() as Promise<KnowledgeBaseStatus>;
 }
