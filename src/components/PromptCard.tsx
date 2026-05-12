@@ -27,8 +27,11 @@ const PromptCard: React.FC<PromptCardProps> = ({
 
   return (
     <div
+      data-testid={`prompt-card-${id}`}
       className={`p-4 rounded shadow cursor-pointer transition-colors ${
-        isSelected ? 'border-2 border-blue-500' : 'border border-gray-200'
+        isSelected
+          ? 'border-2 border-blue-500 bg-blue-50'
+          : 'border border-gray-200 bg-white'
       }`}
       onClick={handleSelect}
       role="button"

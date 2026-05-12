@@ -1,5 +1,6 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useContext, useState, ChangeEvent, FormEvent } from 'react';
 import * as yup from 'yup';
+import { WizardContext } from '../context/WizardContext';
 
 interface FormValues {
   brand: string;
@@ -17,6 +18,7 @@ const schema = yup.object().shape({
 });
 
 const InputForm: React.FC = () => {
+  const wizard = useContext(WizardContext);
   const [values, setValues] = useState<FormValues>({ brand: '', category: '', productType: '' });
   const [errors, setErrors] = useState<Partial<FormValues>>({});
 
@@ -48,8 +50,7 @@ const InputForm: React.FC = () => {
     e.preventDefault();
     const isValid = await validate();
     if (isValid) {
-      // TODO: replace with actual submit logic
-      console.log('Submitted values:', values);
+      wizard?.setStep(2);
     }
   };
 

@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import FileEditor from './pages/FileEditor';
+import WizardPage from './pages/WizardPage';
 import { ToastProvider } from './context/ToastContext';
+import { WizardProvider } from './context/WizardContext';
 
 interface AuthGuardProps {
   children: React.ReactElement;
@@ -42,6 +44,14 @@ const App: React.FC = () => (
             <AuthGuard>
               <FileEditor />
             </AuthGuard>
+          }
+        />
+        <Route
+          path="/wizard"
+          element={
+            <WizardProvider>
+              <WizardPage />
+            </WizardProvider>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

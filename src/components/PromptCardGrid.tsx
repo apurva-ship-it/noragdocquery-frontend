@@ -21,15 +21,20 @@ const samplePrompts: PromptData[] = [
   { id: '8', title: 'Prompt Eight', tag: 'Analysis', description: 'Eighth prompt description', prompt: 'Full text of prompt eight...' },
 ];
 
-const PromptCardGrid: React.FC = () => {
+interface PromptCardGridProps {
+  onSelect?: (id: string) => void;
+}
+
+const PromptCardGrid: React.FC<PromptCardGridProps> = ({ onSelect }) => {
   const [selectedId, setSelectedId] = useState<string>('');
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
+    onSelect?.(id);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div data-testid="prompt-card-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {samplePrompts.map((p) => (
         <PromptCard
           key={p.id}
