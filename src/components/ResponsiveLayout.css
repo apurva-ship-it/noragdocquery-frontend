@@ -1,0 +1,23 @@
+/* Explicit responsive layout — panes stack vertically at ≤768 px */
+.responsive-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .responsive-layout {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 769px) {
+  .responsive-layout {
+    flex-direction: row;
+  }
+
+  .responsive-layout__pane {
+    width: 50%;
+    min-width: 0;
+  }
+}
