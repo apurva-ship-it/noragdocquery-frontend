@@ -1,4 +1,3 @@
-import React from "react";
 import ResponsiveLayout from "./components/ResponsiveLayout";
 import UploadPane from "./components/UploadPane";
 import QueryPane from "./components/QueryPane";

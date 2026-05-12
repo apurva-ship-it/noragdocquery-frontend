@@ -13,3 +13,15 @@ export interface QAPair {
   answer: string;
   streaming: boolean;
 }
+
+export interface DocumentPreview {
+  document_name: string;
+  content: string;
+  chunk_count: number;
+}
+
+export interface ContextResponse {
+  content: string;
+  total_characters: number;
+  document_count: number;
+}
